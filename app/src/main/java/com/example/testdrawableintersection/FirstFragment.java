@@ -31,12 +31,19 @@ import com.google.android.material.shape.ShapeAppearanceModel;
 
 import java.time.Duration;
 import java.time.temporal.TemporalUnit;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class FirstFragment extends Fragment {
     public static final String TAG = "FirstFragment";
     public static final int L = 2540;
 
     private FragmentFirstBinding binding;
+
+    private List<Drawable> mDrawables = new ArrayList<>();
+
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -48,18 +55,20 @@ public class FirstFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
 
-        VectorDrawableCompat vectorDrawable = VectorDrawableCompat.create(getContext().getResources(), R.drawable.test, null);
+        VectorDrawableCompat vectorDrawable = VectorDrawableCompat.create(getContext().getResources(), R.drawable.test_further, null);
         binding.imageview.setImageDrawable(vectorDrawable);
 
 
 
-        Path pathOuter = PathParser.createPathFromPathData(getString(R.string.path_outer));
-        Path pathInner = PathParser.createPathFromPathData(getString(R.string.path_inner));
-        pathOuter.close();
 
-        Path path = new Path();
-        path.addPath(pathOuter);
-        path.addPath(pathInner);
+        mDrawables.add( getShapePath() );
+        mDrawables.add( getHighlights() );
+
+
+
+
+
+
 
 
 
@@ -69,15 +78,11 @@ public class FirstFragment extends Fragment {
         pathArm.close();
 
 
-        Paint paint = new Paint();
-        paint.setStrokeWidth(2f);
-        paint.setStyle(Paint.Style.STROKE);
-        paint.getFillPath(pathOuter, pathArm);
-        paint.getFillPath(pathArm, pathOuter);
 
 
 
 
+/*
 
         Path pathIntersection = new Path();
         pathIntersection.op(pathOuter, pathArm, Path.Op.INTERSECT);
@@ -93,66 +98,79 @@ public class FirstFragment extends Fragment {
 
 
         shapeOuter.getPaint().setColor(Color.BLUE);
-
         shapeArm.getPaint().setColor(Color.YELLOW);
-
-
         shapeIntersection.getPaint().setColor(Color.RED);
 
 
-        LayerDrawable layerDrawable = new LayerDrawable(new Drawable[]{
-                shapeOuter,
-                shapeArm
-                //, shapeIntersection
-        });
-
-
-
-
-
-
-
-
-/*
-
-        path.setFillType(Path.FillType.EVEN_ODD);
-
-        ShapeDrawable shapeDrawable = new ShapeDrawable( new PathShape(path, L, L));
-        shapeDrawable.setAlpha((int) (0.649 * 255));
-        shapeDrawable.getPaint().setColor(Color.parseColor("#729FCF"));
-        shapeDrawable.getPaint().setStyle(Paint.Style.FILL);
-        shapeDrawable.getPaint().setStrokeWidth(12.0f);
-        shapeDrawable.getPaint().setStrokeCap(Paint.Cap.ROUND);
-        shapeDrawable.getPaint().setStrokeJoin(Paint.Join.ROUND);
-
-
-
-        ShapeDrawable shapeDrawableFill = new ShapeDrawable( new PathShape(path, L, L));
-        shapeDrawableFill.setAlpha((int) (0.649 * 255));
-        shapeDrawableFill.getPaint().setColor(Color.parseColor("#FFFFFF"));
-        shapeDrawableFill.getPaint().setStyle(Paint.Style.FILL_AND_STROKE);
-        shapeDrawableFill.getPaint().setStrokeWidth(12.0f);
-        shapeDrawableFill.getPaint().setStrokeCap(Paint.Cap.ROUND);
-        shapeDrawableFill.getPaint().setStrokeJoin(Paint.Join.ROUND);
-
-
-
-
-        LayerDrawable layerDrawable = new LayerDrawable(new Drawable[]{shapeDrawableFill, shapeDrawable});
+        ShapeDrawable shapePath = getShapePath();
 
 */
 
 
 
+
+
+
+
+        LayerDrawable layerDrawable = new LayerDrawable( mDrawables.toArray(new Drawable[0]));
         binding.view.setBackground( layerDrawable );
 
-        PathMeasure pathMeasure = new PathMeasure(path, false);
+      //  PathMeasure pathMeasure = new PathMeasure(path, false);
 
 
 
 
 
     }
+
+
+
+
+
+    public ShapeDrawable getShapePath() {
+        // create a path basic path
+        Path pathOuter = PathParser.createPathFromPathData(getString(R.string.path_outer));
+        Path pathInner = PathParser.createPathFromPathData(getString(R.string.path_inner));
+        Path path = new Path();
+        path.addPath(pathOuter);
+        path.addPath(pathInner);
+        path.setFillType(Path.FillType.EVEN_ODD);
+        ShapeDrawable shapePath = new ShapeDrawable( new PathShape(path, L, L));
+        shapePath.getPaint().setColor(Color.LTGRAY);
+        shapePath.setAlpha((int) (0.649 * 255));
+        shapePath.getPaint().setStyle(Paint.Style.FILL);
+        shapePath.getPaint().setStrokeWidth(12.0f);
+        shapePath.getPaint().setStrokeCap(Paint.Cap.ROUND);
+        shapePath.getPaint().setStrokeJoin(Paint.Join.ROUND);
+        return shapePath;
+    }
+
+
+
+
+    public ShapeDrawable getHighlights() {
+        Path high = new Path();
+        List<String> highlights = Arrays.asList( getResources().getStringArray(R.array.cells));
+        highlights.forEach( cell -> {
+            Path pathCell = PathParser.createPathFromPathData(cell);
+            high.addPath(pathCell);
+        });
+        high.setFillType(Path.FillType.EVEN_ODD);
+        ShapeDrawable shapeHigh = new ShapeDrawable( new PathShape(high, L, L));
+        shapeHigh.getPaint().setColor(Color.LTGRAY);
+        shapeHigh.setAlpha((int) (0.649 * 255));
+        shapeHigh.getPaint().setStyle(Paint.Style.FILL);
+        shapeHigh.getPaint().setStrokeWidth(12.0f);
+        shapeHigh.getPaint().setStrokeCap(Paint.Cap.ROUND);
+        shapeHigh.getPaint().setStrokeJoin(Paint.Join.ROUND);
+        return shapeHigh;
+    }
+
+
+
+
+
+
 
     @Override
     public void onDestroyView() {
