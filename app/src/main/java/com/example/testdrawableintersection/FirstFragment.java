@@ -20,6 +20,7 @@ import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat;
 
 import com.example.testdrawableintersection.databinding.FragmentFirstBinding;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalTime;
 import java.time.ZoneId;
@@ -53,6 +54,7 @@ public class FirstFragment extends Fragment {
 
 
         binding.spiralclock.setup();
+        binding.spiralclock.refresh();
 
 
         binding.buttonFirst.setOnClickListener(new View.OnClickListener() {
@@ -61,71 +63,13 @@ public class FirstFragment extends Fragment {
                 Instant instantRoot = Instant.now();
                 instantRoot = instantRoot.atZone(ZoneOffset.of("+02:00")).withHour(6).withMinute(0).withSecond(0).withNano(0).toInstant();
                 Instant instant = Instant.now();
-                Log.e(TAG, "" + LocalTime.ofInstant( instant, ZoneId.systemDefault()) + "            " + LocalTime.ofInstant( instantRoot, ZoneId.systemDefault()));
+
+                Duration duration = Duration.between(instantRoot, instant);
+                Log.e(TAG,  duration.toHours() +   "         " + LocalTime.ofInstant( instant, ZoneId.systemDefault()) + "            " + LocalTime.ofInstant( instantRoot, ZoneId.systemDefault()));
+
+                binding.spiralclock.submit((int) duration.toHours());
             }
         });
-
-   /*
-
-        mDrawables.add( getShapePath() );
-        mDrawables.add( getHighlights() );
-
-
-
-
-
-
-
-
-
-        Path pathArm = new Path();
-        pathArm.moveTo(1271, 1271);
-        pathArm.lineTo(0, 0);
-        pathArm.close();
-
-
-
-*/
-
-
-/*
-
-        Path pathIntersection = new Path();
-        pathIntersection.op(pathOuter, pathArm, Path.Op.INTERSECT);
-
-
-
-        Log.e(TAG, String.valueOf( pathIntersection.isEmpty()));
-
-
-        ShapeDrawable shapeOuter = new ShapeDrawable( new PathShape(pathOuter, L, L));
-        ShapeDrawable shapeArm = new ShapeDrawable( new PathShape(pathArm, L, L));
-        ShapeDrawable shapeIntersection = new ShapeDrawable( new PathShape(pathIntersection, L, L));
-
-
-        shapeOuter.getPaint().setColor(Color.BLUE);
-        shapeArm.getPaint().setColor(Color.YELLOW);
-        shapeIntersection.getPaint().setColor(Color.RED);
-
-
-        ShapeDrawable shapePath = getShapePath();
-
-*/
-
-
-
-
-
-/*
-
-
-        LayerDrawable layerDrawable = new LayerDrawable( mDrawables.toArray(new Drawable[0]));
-        binding.spiralclock.setBackground( layerDrawable );
-
-*/
-
-
-
 
 
 
