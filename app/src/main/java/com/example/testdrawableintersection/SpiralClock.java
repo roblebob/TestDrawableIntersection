@@ -46,7 +46,7 @@ public class SpiralClock extends View {
 
     public void setup() {
         mLayerDrawable = new LayerDrawable( new Drawable[] {getShapePath()});
-        mLayerDrawable.addLayer(getHighlights());
+        mLayerDrawable.addLayer(getRootPath());
 //        mDrawables.add(getShapePath());
 //        mDrawables.add(getHighlights());
 //        LayerDrawable layerDrawable = new LayerDrawable( mDrawables.toArray(new Drawable[0]));
@@ -72,6 +72,38 @@ public class SpiralClock extends View {
         shapePath.getPaint().setStrokeJoin(Paint.Join.ROUND);
         return shapePath;
     }
+
+
+
+    public ShapeDrawable getRootPath() {
+
+        Path path = new Path();
+
+
+        Arrays.asList( getResources().getStringArray(R.array.outer_path_hours))
+                .forEach( pathString -> {
+                    Path pathOuter = PathParser.createPathFromPathData(pathString);
+                    path.addPath(pathOuter);
+                });
+
+        Arrays.asList( getResources().getStringArray(R.array.inner_path_hours))
+                .forEach( pathString -> {
+                    Path pathInner = PathParser.createPathFromPathData(pathString);
+                    path.addPath(pathInner);
+                });
+
+        path.setFillType(Path.FillType.EVEN_ODD);
+        ShapeDrawable shapePath = new ShapeDrawable( new PathShape(path, L, L));
+        shapePath.getPaint().setColor(Color.WHITE);
+        shapePath.setAlpha((int) (0.1 * 255));
+        shapePath.getPaint().setStyle(Paint.Style.FILL);
+        shapePath.getPaint().setStrokeWidth(12.0f);
+        shapePath.getPaint().setStrokeCap(Paint.Cap.ROUND);
+        shapePath.getPaint().setStrokeJoin(Paint.Join.ROUND);
+        return shapePath;
+    }
+
+
 
 
 
