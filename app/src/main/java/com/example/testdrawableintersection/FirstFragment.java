@@ -4,13 +4,8 @@ package com.example.testdrawableintersection;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.graphics.PathMeasure;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.GradientDrawable;
-import android.graphics.drawable.InsetDrawable;
-import android.graphics.drawable.LayerDrawable;
 import android.graphics.drawable.ShapeDrawable;
-import android.graphics.drawable.VectorDrawable;
 import android.graphics.drawable.shapes.PathShape;
 import android.os.Bundle;
 import android.util.Log;
@@ -20,17 +15,15 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.core.graphics.PathParser;
-import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.fragment.app.Fragment;
-import androidx.navigation.fragment.NavHostFragment;
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat;
 
 import com.example.testdrawableintersection.databinding.FragmentFirstBinding;
-import com.google.android.material.shape.MaterialShapeDrawable;
-import com.google.android.material.shape.ShapeAppearanceModel;
 
-import java.time.Duration;
-import java.time.temporal.TemporalUnit;
+import java.time.Instant;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -55,11 +48,24 @@ public class FirstFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
 
-        VectorDrawableCompat vectorDrawable = VectorDrawableCompat.create(getContext().getResources(), R.drawable.test_further, null);
+        VectorDrawableCompat vectorDrawable = VectorDrawableCompat.create(getContext().getResources(), R.drawable.test_further_cycles, null);
         binding.imageview.setImageDrawable(vectorDrawable);
 
 
+        binding.spiralclock.setup();
 
+
+        binding.buttonFirst.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Instant instantRoot = Instant.now();
+                instantRoot = instantRoot.atZone(ZoneOffset.of("+02:00")).withHour(6).withMinute(0).withSecond(0).withNano(0).toInstant();
+                Instant instant = Instant.now();
+                Log.e(TAG, "" + LocalTime.ofInstant( instant, ZoneId.systemDefault()) + "            " + LocalTime.ofInstant( instantRoot, ZoneId.systemDefault()));
+            }
+        });
+
+   /*
 
         mDrawables.add( getShapePath() );
         mDrawables.add( getHighlights() );
@@ -79,7 +85,7 @@ public class FirstFragment extends Fragment {
 
 
 
-
+*/
 
 
 /*
@@ -110,12 +116,14 @@ public class FirstFragment extends Fragment {
 
 
 
+/*
 
 
         LayerDrawable layerDrawable = new LayerDrawable( mDrawables.toArray(new Drawable[0]));
-        binding.view.setBackground( layerDrawable );
+        binding.spiralclock.setBackground( layerDrawable );
 
-      //  PathMeasure pathMeasure = new PathMeasure(path, false);
+*/
+
 
 
 
@@ -179,3 +187,6 @@ public class FirstFragment extends Fragment {
     }
 
 }
+
+
+//  PathMeasure pathMeasure = new PathMeasure(path, false);
