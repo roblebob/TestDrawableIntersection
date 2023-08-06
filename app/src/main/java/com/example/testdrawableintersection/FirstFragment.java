@@ -61,7 +61,7 @@ public class FirstFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 Instant start = Instant.now().atZone(ZoneOffset.of("+02:00")).withHour(11).withMinute(30).withSecond(0).withNano(0).toInstant();
-                Instant end = Instant.now().atZone(ZoneOffset.of("+02:00")).withHour(12).withMinute(30).withSecond(0).withNano(0).toInstant();
+                Instant end = Instant.now().atZone(ZoneOffset.of("+02:00")).withHour(15).withMinute(30).withSecond(0).withNano(0).toInstant();
                 binding.spiralclock.submit(start, end);
             }
         });

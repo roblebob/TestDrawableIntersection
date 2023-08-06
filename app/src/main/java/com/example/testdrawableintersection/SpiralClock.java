@@ -20,6 +20,8 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class SpiralClock extends View {
@@ -84,15 +86,46 @@ public class SpiralClock extends View {
         List<String> startPoints = solve(start);
         List<String> endPoints = solve(end);
 
-        String s = "M  " + startPoints.get(0) +  "  L  " + endPoints.get(0) + "  " + endPoints.get(1) + "  " + startPoints.get(1) + "  Z";;
-        Path path = PathParser.createPathFromPathData(s);
+        int startHour = getHour(start);
+        int endHour = getHour(end);
+        Log.e(TAG, "startHour: " + startHour  + "  endHour: " + endHour);
+
+
+        List<String> outerPoints = new ArrayList<>();
+        List<String> innerPoints = new ArrayList<>();
+
+        outerPoints.add(startPoints.get(0));
+        innerPoints.add(startPoints.get(1));
+
+
+        if (startHour != endHour) {
+            for (int i = startHour + 1; i <= endHour; i++) {
+
+                outerPoints.add( myDataLists.mOuterHoursList.get(i));
+                Log.e(TAG, "outerPoints: " + myDataLists.mOuterHoursList.get(i));
+                innerPoints.add( myDataLists.mInnerHoursList.get(i));
+            }
+        }
+
+        outerPoints.add(endPoints.get(0));
+        innerPoints.add(endPoints.get(1));
+
+
+        Collections.reverse(innerPoints);
+
+        outerPoints.addAll(innerPoints);
+
+
+        Path path = new Path();
+        path.addPath( genPathFromList(outerPoints));
+
 
 
         path.setFillType(Path.FillType.EVEN_ODD);
         ShapeDrawable shapeHigh = new ShapeDrawable( new PathShape(path, L, L));
         shapeHigh.getPaint().setColor(Color.YELLOW);
         shapeHigh.setAlpha((int) (0.1 * 255));
-        shapeHigh.getPaint().setStyle(Paint.Style.FILL);
+        shapeHigh.getPaint().setStyle(Paint.Style.FILL_AND_STROKE);
         shapeHigh.getPaint().setStrokeWidth(12.0f);
         shapeHigh.getPaint().setStrokeCap(Paint.Cap.ROUND);
         shapeHigh.getPaint().setStrokeJoin(Paint.Join.ROUND);
@@ -287,18 +320,16 @@ public class SpiralClock extends View {
             mHoursTrack = genPathFromList( track);
             mHoursTrack.setFillType(Path.FillType.EVEN_ODD);
         }
-
-        public Path genPathFromList(List<String> inputList) {
-            List<String> list = new ArrayList<>( inputList);
-            list.add(0, "M");
-            list.add(2, "L");
-            Path path = new Path();
-            path.addPath( PathParser.createPathFromPathData( UtilKt.list2String(list)));
-            return path;
-        }
     }
 
-
+    public Path genPathFromList(List<String> inputList) {
+        List<String> list = new ArrayList<>( inputList);
+        list.add(0, "M");
+        list.add(2, "L");
+        Path path = new Path();
+        path.addPath( PathParser.createPathFromPathData( UtilKt.list2String(list)));
+        return path;
+    }
 
     public class MyDataLists {
         public List<String> mOuterHoursList = new ArrayList<>();
