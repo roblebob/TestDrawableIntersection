@@ -62,4 +62,26 @@ Z
         android:strokeColor="#FFFFFF"
         android:fillType="evenOdd"/>
 
+    <path
+        android:strokeAlpha="0.149"
+        android:strokeLineJoin="round"
+        android:strokeWidth="28.222"
+        android:fillColor="#729FCF"
+        android:fillAlpha="0.149"
+        android:strokeColor="#FFFF00"
+        android:fillType="evenOdd"
+        android:pathData="M 1270,1270 L 0,537"
+        />
+
+
+    <path
+        android:strokeAlpha="0.149"
+        android:strokeLineJoin="round"
+        android:strokeWidth="28.222"
+        android:fillColor="#729FCF"
+        android:fillAlpha="0.149"
+        android:strokeColor="#FFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M 1270,1270 L 170,635"
+        />
 </vector>

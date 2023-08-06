@@ -1,10 +1,10 @@
 package com.example.testdrawableintersection;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.PathShape;
@@ -15,137 +15,160 @@ import android.view.View;
 import androidx.annotation.Nullable;
 import androidx.core.graphics.PathParser;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class SpiralClock extends View {
     public static final String TAG = SpiralClock.class.getSimpleName();
-    public static final int L = 2540;
-
-
     public SpiralClock(Context context) {
         super(context);
     }
-
     public SpiralClock(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
     }
-
     public SpiralClock(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
     }
-
     public SpiralClock(Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
     }
 
-    public List<String> mPathsOuterHoursList = new ArrayList<>();
-    public List<String> mPathsInnerHoursList = new ArrayList<>();
-    public List<String> mPathsOuterCyclesList = new ArrayList<>();
-    public List<String> mPathsInnerCyclesList = new ArrayList<>();
 
-    public Path mPathOuterHours = new Path();
-    public Path mPathInnerHours = new Path();
-    public Path mPathOuterCycles = new Path();
-    public Path mPathInnerCycles = new Path();
 
-    public Path mPathHours = new Path();
-    public Path mPathCycles = new Path();
+    public static final int L = 2540;
+    public static final int C = L / 2;
 
     public List<ShapeDrawable> mShapeDrawablesList = new ArrayList<>();
     public LayerDrawable mLayerDrawable;
-
-
-
+    public MyDataLists myDataLists;
+    public MyPathStore myPathStore;
     public void init() {
-        mPathsOuterHoursList .addAll( Arrays.asList( getResources().getStringArray(R.array.outer_path_hours)));
-        mPathsInnerHoursList .addAll( Arrays.asList( getResources().getStringArray(R.array.inner_path_hours)));
-        mPathsOuterCyclesList.addAll( Arrays.asList( getResources().getStringArray(R.array.outer_path_cycles)));
-        mPathsInnerCyclesList.addAll( Arrays.asList( getResources().getStringArray(R.array.inner_path_cycles)));
-
-
-        mPathsOuterHoursList .add(0, "M");  mPathsOuterHoursList .add(2, "L");
-        mPathsInnerHoursList .add(0, "M");  mPathsInnerHoursList .add(2, "L");
-        mPathsOuterCyclesList.add(0, "M");  mPathsOuterCyclesList.add(2, "L");
-        mPathsInnerCyclesList.add(0, "M");  mPathsInnerCyclesList.add(2, "L");
-
-
-        mPathOuterHours .addPath( PathParser.createPathFromPathData( UtilKt.list2String(mPathsOuterHoursList)));
-        mPathInnerHours .addPath( PathParser.createPathFromPathData( UtilKt.list2String(mPathsInnerHoursList)));
-        mPathOuterCycles.addPath( PathParser.createPathFromPathData( UtilKt.list2String(mPathsOuterCyclesList)));
-        mPathInnerCycles.addPath( PathParser.createPathFromPathData( UtilKt.list2String(mPathsInnerCyclesList)));
-
-
-        mPathHours.addPath(mPathOuterHours);
-        mPathHours.addPath(mPathInnerHours);
-        mPathHours.setFillType(Path.FillType.EVEN_ODD);
-
-        mPathCycles.addPath(mPathOuterCycles);
-        mPathCycles.addPath(mPathInnerCycles);
-        mPathCycles.setFillType(Path.FillType.EVEN_ODD);
+        myDataLists = new MyDataLists();
+        myPathStore = new MyPathStore();
     }
-
-
-
-
-
-
     public void setup() {
         init();
-
-
-        mShapeDrawablesList.add(getShapePath());
-        //mShapeDrawablesList.add(getHighlights());
+        mShapeDrawablesList.add(getHoursTrackShape());
     }
-
-
-    public void submit(int hour) {
-        if (hour < 0) {
-            hour = 24 + hour + 1;
-        }
-        Log.e(TAG, "submit: " + hour);
-        Path path = new Path();
-        String sOuter = "M " + mPathsOuterHoursList.get(hour) + " L " + mPathsOuterHoursList.get(hour + 1);
-        String sInner = "M " + mPathsInnerHoursList.get(hour) + " L " + mPathsInnerHoursList.get(hour + 1);
-
-
-
-        Log.e(TAG, "\n" + sOuter + "\n" + sInner);
-        path.addPath( PathParser.createPathFromPathData(sOuter));
-        path.addPath( PathParser.createPathFromPathData(sInner));
-        path.addPath( PathParser.createPathFromPathData("M " + mPathsOuterHoursList.get(hour) + " L " + mPathsInnerHoursList.get(hour)));
-        path.addPath( PathParser.createPathFromPathData("M " + mPathsOuterHoursList.get(hour+ 1) + " L " + mPathsInnerHoursList.get(hour + 1)));
-
-        path.setFillType(Path.FillType.EVEN_ODD);
-
-        ShapeDrawable shapePath = new ShapeDrawable( new PathShape(path, L, L));
-        shapePath.getPaint().setColor(Color.RED);
-        shapePath.setAlpha((int) (1.0 * 255));
-        shapePath.getPaint().setStyle(Paint.Style.STROKE);
-        shapePath.getPaint().setStrokeWidth(12.0f);
-        shapePath.getPaint().setStrokeCap(Paint.Cap.ROUND);
-        shapePath.getPaint().setStrokeJoin(Paint.Join.ROUND);
-
-        mShapeDrawablesList.add(shapePath);
-        refresh();
-    }
-
-
     public void refresh() {
         mLayerDrawable = new LayerDrawable( mShapeDrawablesList.toArray(new ShapeDrawable[0]));
         setBackground( mLayerDrawable );
     }
 
 
+    public void submit() {
+        Instant instantRoot = Instant.now();
+        instantRoot = instantRoot.atZone(ZoneOffset.of("+02:00")).withHour(6).withMinute(0).withSecond(0).withNano(0).toInstant();
+        Instant instant = Instant.now();
+        Duration duration = Duration.between(instantRoot, instant);
+        Log.e(TAG,  duration.toHours() +   "         " + LocalTime.ofInstant( instant, ZoneId.systemDefault()) + "            " + LocalTime.ofInstant( instantRoot, ZoneId.systemDefault()));
 
-    public ShapeDrawable getShapePath() {
+
+
+        double angle = duration.toMinutes() / 2.0;  // 1 degree  ==== 2 minutes
+        angle = 360 - (angle % 360);
+
+
+        angle = angle * (Math.PI / 180.0);
+        mShapeDrawablesList.add(getArm(angle));
+        Log.e(TAG, "submit: " + angle);
+
+        int hour = (int) duration.toHours();
+        if (hour < 0) {
+            hour = 24 + hour + 1;
+        }
+        Log.e(TAG, "submit: " + hour);
+
+
+        mShapeDrawablesList.add( solve(hour, angle));
+
+
+        ShapeDrawable shapePath = getRelevantTileShape(hour);
+        mShapeDrawablesList.add(shapePath);
+        refresh();
+    }
+
+
+
+
+
+
+
+    public ShapeDrawable solve(int hour, double angle) {
+
+        double z1_x = C;
+        double z1_y = C;
+        double z2_x = (int) (C + (C * Math.sin(angle)));
+        double z2_y = (int) (C + (C * Math.cos(angle)));
+
+        String[] arg;
+        arg = myDataLists.mOuterHoursList.get(hour).split("[\\s]*,[\\s]*");
+        double p1_x = Integer.parseInt(arg[0]);
+        double p1_y = Integer.parseInt(arg[1]);
+        arg = myDataLists.mOuterHoursList.get(hour + 1).split("[\\s]*,[\\s]*");
+        double p2_x = Integer.parseInt(arg[0]);
+        double p2_y = Integer.parseInt(arg[1]);
+
+        arg = myDataLists.mInnerHoursList.get(hour).split("[\\s]*,[\\s]*");
+        double q1_x = Integer.parseInt(arg[0]);
+        double q1_y = Integer.parseInt(arg[1]);
+        arg = myDataLists.mInnerHoursList.get(hour + 1).split("[\\s]*,[\\s]*");
+        double q2_x = Integer.parseInt(arg[0]);
+        double q2_y = Integer.parseInt(arg[1]);
+
+        int x1 = (int) (((z2_x - z1_x) * (p2_x * p1_y - p1_x * p2_y) - (p2_x - p1_x) * (z2_x * z1_y - z1_x * z2_y)) / ((z2_y - z1_y) * (p2_x - p1_x) - (p2_y - p1_y) * (z2_x - z1_x)));
+        int y1 = (int) (((z2_y - z1_y) * (p2_x * p1_y - p1_x * p2_y) - (p2_y - p1_y) * (z2_x * z1_y - z1_x * z2_y)) / ((z2_y - z1_y) * (p2_x - p1_x) - (p2_y - p1_y) * (z2_x - z1_x)));
+
+        int x2 = (int) (((z2_x - z1_x) * (q2_x * q1_y - q1_x * q2_y) - (q2_x - q1_x) * (z2_x * z1_y - z1_x * z2_y)) / ((z2_y - z1_y) * (q2_x - q1_x) - (q2_y - q1_y) * (z2_x - z1_x)));
+        int y2 = (int) (((z2_y - z1_y) * (q2_x * q1_y - q1_x * q2_y) - (q2_y - q1_y) * (z2_x * z1_y - z1_x * z2_y)) / ((z2_y - z1_y) * (q2_x - q1_x) - (q2_y - q1_y) * (z2_x - z1_x)));
+
+
+
+
+
+
+        String s = "M " + x2 + "," + y2 + " L " + x1 + "," + y1;
+        Path path = new Path();
+        path.addPath( PathParser.createPathFromPathData(s));
+        ShapeDrawable shapePath = new ShapeDrawable( new PathShape(path, L, L));
+        shapePath.getPaint().setColor(Color.BLUE);
+        shapePath.setAlpha((int) (1.0 * 255));
+        shapePath.getPaint().setStyle(Paint.Style.FILL_AND_STROKE);
+        shapePath.getPaint().setStrokeWidth(20.0f);
+        shapePath.getPaint().setStrokeCap(Paint.Cap.ROUND);
+        shapePath.getPaint().setStrokeJoin(Paint.Join.ROUND);
+        return shapePath;
+    }
+
+
+
+
+
+
+
+
+
+
+        public ShapeDrawable getArm(double angle) {
         // create a path basic path
 
-        ShapeDrawable shapePath = new ShapeDrawable( new PathShape(mPathHours, L, L));
-        shapePath.getPaint().setColor(Color.WHITE);
-        shapePath.setAlpha((int) (0.1 * 255));
-        shapePath.getPaint().setStyle(Paint.Style.STROKE);
+        int x = (int) (C + (C * Math.sin(angle)));
+        int y = (int) (C + (C * Math.cos(angle)));
+
+        String s = "M " + C + "," + C + " L " + x + "," + y;
+        Log.e(TAG, "getArm: " + s);
+        Path path = new Path();
+        path.addPath( PathParser.createPathFromPathData(s));
+        ShapeDrawable shapePath = new ShapeDrawable( new PathShape(path, L, L));
+        shapePath.getPaint().setColor(Color.RED);
+        shapePath.setAlpha((int) (1.0 * 255));
+        shapePath.getPaint().setStyle(Paint.Style.FILL_AND_STROKE);
         shapePath.getPaint().setStrokeWidth(12.0f);
         shapePath.getPaint().setStrokeCap(Paint.Cap.ROUND);
         shapePath.getPaint().setStrokeJoin(Paint.Join.ROUND);
@@ -153,6 +176,103 @@ public class SpiralClock extends View {
     }
 
 
+
+
+    public ShapeDrawable getHoursTrackShape() {
+        // create a path basic path
+
+        ShapeDrawable shapePath = new ShapeDrawable( new PathShape(myPathStore.mHoursTrack, L, L));
+        shapePath.getPaint().setColor(Color.WHITE);
+        shapePath.setAlpha((int) (0.1 * 255));
+        shapePath.getPaint().setStyle(Paint.Style.FILL);
+        shapePath.getPaint().setStrokeWidth(12.0f);
+        shapePath.getPaint().setStrokeCap(Paint.Cap.ROUND);
+        shapePath.getPaint().setStrokeJoin(Paint.Join.ROUND);
+        return shapePath;
+    }
+
+
+
+
+
+
+    public ShapeDrawable getRelevantTileShape(int hour) {
+
+        Path path = new Path();
+        path.addPath( PathParser.createPathFromPathData("M " + myDataLists.mOuterHoursList.get(hour) + " L " + myDataLists.mOuterHoursList.get(hour + 1)));
+        path.addPath( PathParser.createPathFromPathData("M " + myDataLists.mInnerHoursList.get(hour) + " L " + myDataLists.mInnerHoursList.get(hour + 1)));
+        //path.addPath( PathParser.createPathFromPathData("M " + myDataLists.mOuterHoursList.get(hour) + " L " + myDataLists.mInnerHoursList.get(hour)));
+        //path.addPath( PathParser.createPathFromPathData("M " + myDataLists.mOuterHoursList.get(hour+ 1) + " L " + myDataLists.mInnerHoursList.get(hour + 1)));
+
+        path.setFillType(Path.FillType.EVEN_ODD);
+
+        ShapeDrawable shapePath = new ShapeDrawable( new PathShape(path, L, L));
+        shapePath.getPaint().setColor(Color.RED);
+        shapePath.setAlpha((int) (1.0 * 255));
+        shapePath.getPaint().setStyle(Paint.Style.FILL_AND_STROKE);
+        shapePath.getPaint().setStrokeWidth(12.0f);
+        shapePath.getPaint().setStrokeCap(Paint.Cap.ROUND);
+        shapePath.getPaint().setStrokeJoin(Paint.Join.ROUND);
+        return shapePath;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    class MyPathStore {
+        public Path mHoursTrack = new Path();
+        public MyPathStore() {
+            List<String> track = new ArrayList<>();
+            track.addAll( myDataLists.mOuterHoursList);
+            track.addAll( myDataLists.mInnerHoursList);
+            //track.add( myDataLists.mOuterHoursList.get(0));
+            //track.add( "Z");
+            mHoursTrack = genPathFromList( track);
+            mHoursTrack.setFillType(Path.FillType.INVERSE_EVEN_ODD);
+        }
+
+        public Path genPathFromList(List<String> inputList) {
+            List<String> list = new ArrayList<>( inputList);
+            list.add(0, "M");
+            list.add(2, "L");
+            Path path = new Path();
+            path.addPath( PathParser.createPathFromPathData( UtilKt.list2String(list)));
+            return path;
+        }
+    }
+
+
+
+    public class MyDataLists {
+        public List<String> mOuterHoursList = new ArrayList<>();
+        public List<String> mInnerHoursList = new ArrayList<>();
+        public List<String> mOuterCyclesList = new ArrayList<>();
+        public List<String> mInnerCyclesList = new ArrayList<>();
+
+        public MyDataLists() {
+            Resources res = getResources();
+            mOuterHoursList .addAll( Arrays.asList( res.getStringArray( R.array.outer_path_hours)));
+            mInnerHoursList .addAll( Arrays.asList( res.getStringArray( R.array.inner_path_hours)));
+            mOuterCyclesList.addAll( Arrays.asList( res.getStringArray( R.array.outer_path_cycles)));
+            mInnerCyclesList.addAll( Arrays.asList( res.getStringArray( R.array.inner_path_cycles)));
+        }
+    }
 
 
 
@@ -178,5 +298,4 @@ public class SpiralClock extends View {
         shapeHigh.getPaint().setStrokeJoin(Paint.Join.ROUND);
         return shapeHigh;
     }
-
 }

@@ -60,14 +60,7 @@ public class FirstFragment extends Fragment {
         binding.buttonFirst.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Instant instantRoot = Instant.now();
-                instantRoot = instantRoot.atZone(ZoneOffset.of("+02:00")).withHour(6).withMinute(0).withSecond(0).withNano(0).toInstant();
-                Instant instant = Instant.now();
-
-                Duration duration = Duration.between(instantRoot, instant);
-                Log.e(TAG,  duration.toHours() +   "         " + LocalTime.ofInstant( instant, ZoneId.systemDefault()) + "            " + LocalTime.ofInstant( instantRoot, ZoneId.systemDefault()));
-
-                binding.spiralclock.submit((int) duration.toHours());
+                binding.spiralclock.submit();
             }
         });
 
