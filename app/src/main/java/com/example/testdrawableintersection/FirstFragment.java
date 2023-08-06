@@ -60,7 +60,9 @@ public class FirstFragment extends Fragment {
         binding.buttonFirst.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                binding.spiralclock.submit();
+                Instant start = Instant.now().atZone(ZoneOffset.of("+02:00")).withHour(11).withMinute(30).withSecond(0).withNano(0).toInstant();
+                Instant end = Instant.now().atZone(ZoneOffset.of("+02:00")).withHour(12).withMinute(30).withSecond(0).withNano(0).toInstant();
+                binding.spiralclock.submit(start, end);
             }
         });
 

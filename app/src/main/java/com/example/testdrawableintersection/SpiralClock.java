@@ -17,8 +17,6 @@ import androidx.core.graphics.PathParser;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalTime;
-import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,8 +42,10 @@ public class SpiralClock extends View {
     public static final int L = 2540;
     public static final int C = L / 2;
 
-    public List<ShapeDrawable> mShapeDrawablesList = new ArrayList<>();
-    public LayerDrawable mLayerDrawable;
+    public List<ShapeDrawable> mShapeDrawablesCoreList = new ArrayList<>();
+    public List<ShapeDrawable> mShapeDrawablesExtraList = new ArrayList<>();
+
+
     public MyDataLists myDataLists;
     public MyPathStore myPathStore;
     public void init() {
@@ -54,53 +54,85 @@ public class SpiralClock extends View {
     }
     public void setup() {
         init();
-        mShapeDrawablesList.add(getHoursTrackShape());
+        mShapeDrawablesCoreList.add(getHoursTrackShape());
     }
     public void refresh() {
-        mLayerDrawable = new LayerDrawable( mShapeDrawablesList.toArray(new ShapeDrawable[0]));
-        setBackground( mLayerDrawable );
+
+        List<ShapeDrawable> shapeDrawablesList = new ArrayList<>(mShapeDrawablesCoreList);
+        shapeDrawablesList.addAll(mShapeDrawablesExtraList);
+        LayerDrawable layerDrawable = new LayerDrawable( shapeDrawablesList.toArray(new ShapeDrawable[0]));
+        setBackground( layerDrawable );
     }
 
 
-    public void submit() {
-        Instant instantRoot = Instant.now();
-        instantRoot = instantRoot.atZone(ZoneOffset.of("+02:00")).withHour(6).withMinute(0).withSecond(0).withNano(0).toInstant();
-        Instant instant = Instant.now();
-        Duration duration = Duration.between(instantRoot, instant);
-        Log.e(TAG,  duration.toHours() +   "         " + LocalTime.ofInstant( instant, ZoneId.systemDefault()) + "            " + LocalTime.ofInstant( instantRoot, ZoneId.systemDefault()));
+    public void submit(Instant start, Instant end) {
+        Instant now = Instant.now();
+        mShapeDrawablesExtraList.clear();
+
+        //mShapeDrawablesExtraList.add( getRayShape(now) );
+        //mShapeDrawablesExtraList.add( getRelevantTileShape(now) );
+        mShapeDrawablesExtraList.add( getArmShape(now) );
+        mShapeDrawablesExtraList.add( getHighlights(start, end) );
 
 
-
-        double angle = duration.toMinutes() / 2.0;  // 1 degree  ==== 2 minutes
-        angle = 360 - (angle % 360);
-
-
-        angle = angle * (Math.PI / 180.0);
-        mShapeDrawablesList.add(getArm(angle));
-        Log.e(TAG, "submit: " + angle);
-
-        int hour = (int) duration.toHours();
-        if (hour < 0) {
-            hour = 24 + hour + 1;
-        }
-        Log.e(TAG, "submit: " + hour);
-
-
-        mShapeDrawablesList.add( solve(hour, angle));
-
-
-        ShapeDrawable shapePath = getRelevantTileShape(hour);
-        mShapeDrawablesList.add(shapePath);
         refresh();
     }
 
 
+    public ShapeDrawable getHighlights(Instant start, Instant end) {
+
+        List<String> startPoints = solve(start);
+        List<String> endPoints = solve(end);
+
+        String s = "M  " + startPoints.get(0) +  "  L  " + endPoints.get(0) + "  " + endPoints.get(1) + "  " + startPoints.get(1) + "  Z";;
+        Path path = PathParser.createPathFromPathData(s);
+
+
+        path.setFillType(Path.FillType.EVEN_ODD);
+        ShapeDrawable shapeHigh = new ShapeDrawable( new PathShape(path, L, L));
+        shapeHigh.getPaint().setColor(Color.YELLOW);
+        shapeHigh.setAlpha((int) (0.1 * 255));
+        shapeHigh.getPaint().setStyle(Paint.Style.FILL);
+        shapeHigh.getPaint().setStrokeWidth(12.0f);
+        shapeHigh.getPaint().setStrokeCap(Paint.Cap.ROUND);
+        shapeHigh.getPaint().setStrokeJoin(Paint.Join.ROUND);
+        return shapeHigh;
+    }
+
+
+
+
+    public Instant getRootInstant() {
+        return Instant
+                .now()
+                .atZone(ZoneOffset.of("+02:00"))
+                .withHour(6).withMinute(0).withSecond(0).withNano(0)
+                .toInstant();
+    }
+    public int getHour(Instant instant) {
+        Duration duration = Duration.between(getRootInstant(), instant);
+        int hour = (int) duration.toHours();
+        if (hour < 0) {
+            hour = 24 + hour + 1;
+        }
+        return hour;
+    }
+    public double getAngle(Instant instant) {
+        Duration duration = Duration.between(getRootInstant(), instant);
+        double angle = duration.toMinutes() / 2.0;  // 1 degree  ==== 2 minutes
+        angle = 360 - (angle % 360);      // counterclockwise
+        angle = angle * (Math.PI / 180.0);  // convert from degree to radians
+        return angle;
+    }
 
 
 
 
 
-    public ShapeDrawable solve(int hour, double angle) {
+    public List<String> solve(Instant instant) {
+
+        int hour = getHour(instant);
+        double angle = getAngle(instant);
 
         double z1_x = C;
         double z1_y = C;
@@ -130,13 +162,24 @@ public class SpiralClock extends View {
 
 
 
+        ArrayList<String> list = new ArrayList<>();
+        list.add(x1 + "," + y1);
+        list.add(x2 + "," + y2);
+        return list;
+    }
 
 
 
-        String s = "M " + x2 + "," + y2 + " L " + x1 + "," + y1;
+
+    public ShapeDrawable getArmShape(Instant instant) {
+        // create a path basic path
+        List<String> intersectionPoints = solve( instant);
+
+
+        String s = "M " + intersectionPoints.get(0)  +  " L " + intersectionPoints.get(1);
         Path path = new Path();
-        path.addPath( PathParser.createPathFromPathData(s));
-        ShapeDrawable shapePath = new ShapeDrawable( new PathShape(path, L, L));
+        path.addPath(PathParser.createPathFromPathData(s));
+        ShapeDrawable shapePath = new ShapeDrawable(new PathShape(path, L, L));
         shapePath.getPaint().setColor(Color.BLUE);
         shapePath.setAlpha((int) (1.0 * 255));
         shapePath.getPaint().setStyle(Paint.Style.FILL_AND_STROKE);
@@ -144,19 +187,15 @@ public class SpiralClock extends View {
         shapePath.getPaint().setStrokeCap(Paint.Cap.ROUND);
         shapePath.getPaint().setStrokeJoin(Paint.Join.ROUND);
         return shapePath;
+
     }
 
 
 
+    public ShapeDrawable getRayShape(Instant instant) {
 
+        double angle = getAngle( instant);
 
-
-
-
-
-
-        public ShapeDrawable getArm(double angle) {
-        // create a path basic path
 
         int x = (int) (C + (C * Math.sin(angle)));
         int y = (int) (C + (C * Math.cos(angle)));
@@ -196,7 +235,9 @@ public class SpiralClock extends View {
 
 
 
-    public ShapeDrawable getRelevantTileShape(int hour) {
+    public ShapeDrawable getRelevantTileShape(Instant instant) {
+
+        int hour = getHour(instant);
 
         Path path = new Path();
         path.addPath( PathParser.createPathFromPathData("M " + myDataLists.mOuterHoursList.get(hour) + " L " + myDataLists.mOuterHoursList.get(hour + 1)));
@@ -244,7 +285,7 @@ public class SpiralClock extends View {
             //track.add( myDataLists.mOuterHoursList.get(0));
             //track.add( "Z");
             mHoursTrack = genPathFromList( track);
-            mHoursTrack.setFillType(Path.FillType.INVERSE_EVEN_ODD);
+            mHoursTrack.setFillType(Path.FillType.EVEN_ODD);
         }
 
         public Path genPathFromList(List<String> inputList) {
@@ -281,21 +322,5 @@ public class SpiralClock extends View {
 
 
 
-    public ShapeDrawable getHighlights() {
-        Path high = new Path();
-        List<String> highlights = Arrays.asList( getResources().getStringArray(R.array.cells));
-        highlights.forEach( cell -> {
-            Path pathCell = PathParser.createPathFromPathData(cell);
-            high.addPath(pathCell);
-        });
-        high.setFillType(Path.FillType.EVEN_ODD);
-        ShapeDrawable shapeHigh = new ShapeDrawable( new PathShape(high, L, L));
-        shapeHigh.getPaint().setColor(Color.YELLOW);
-        shapeHigh.setAlpha((int) (0.1 * 255));
-        shapeHigh.getPaint().setStyle(Paint.Style.FILL);
-        shapeHigh.getPaint().setStrokeWidth(12.0f);
-        shapeHigh.getPaint().setStrokeCap(Paint.Cap.ROUND);
-        shapeHigh.getPaint().setStrokeJoin(Paint.Join.ROUND);
-        return shapeHigh;
-    }
+
 }
