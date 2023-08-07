@@ -74,44 +74,7 @@ public class FirstFragment extends Fragment {
 
 
 
-    public ShapeDrawable getShapePath() {
-        // create a path basic path
-        Path pathOuter = PathParser.createPathFromPathData(getString(R.string.path_outer));
-        Path pathInner = PathParser.createPathFromPathData(getString(R.string.path_inner));
-        Path path = new Path();
-        path.addPath(pathOuter);
-        path.addPath(pathInner);
-        path.setFillType(Path.FillType.EVEN_ODD);
-        ShapeDrawable shapePath = new ShapeDrawable( new PathShape(path, L, L));
-        shapePath.getPaint().setColor(Color.LTGRAY);
-        shapePath.setAlpha((int) (0.649 * 255));
-        shapePath.getPaint().setStyle(Paint.Style.FILL);
-        shapePath.getPaint().setStrokeWidth(12.0f);
-        shapePath.getPaint().setStrokeCap(Paint.Cap.ROUND);
-        shapePath.getPaint().setStrokeJoin(Paint.Join.ROUND);
-        return shapePath;
-    }
 
-
-
-
-    public ShapeDrawable getHighlights() {
-        Path high = new Path();
-        List<String> highlights = Arrays.asList( getResources().getStringArray(R.array.cells));
-        highlights.forEach( cell -> {
-            Path pathCell = PathParser.createPathFromPathData(cell);
-            high.addPath(pathCell);
-        });
-        high.setFillType(Path.FillType.EVEN_ODD);
-        ShapeDrawable shapeHigh = new ShapeDrawable( new PathShape(high, L, L));
-        shapeHigh.getPaint().setColor(Color.LTGRAY);
-        shapeHigh.setAlpha((int) (0.649 * 255));
-        shapeHigh.getPaint().setStyle(Paint.Style.FILL);
-        shapeHigh.getPaint().setStrokeWidth(12.0f);
-        shapeHigh.getPaint().setStrokeCap(Paint.Cap.ROUND);
-        shapeHigh.getPaint().setStrokeJoin(Paint.Join.ROUND);
-        return shapeHigh;
-    }
 
 
 

@@ -315,8 +315,6 @@ public class SpiralClock extends View {
             List<String> track = new ArrayList<>();
             track.addAll( myDataLists.mOuterHoursList);
             track.addAll( myDataLists.mInnerHoursList);
-            //track.add( myDataLists.mOuterHoursList.get(0));
-            //track.add( "Z");
             mHoursTrack = genPathFromList( track);
             mHoursTrack.setFillType(Path.FillType.EVEN_ODD);
         }
